@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  frontend:
+    build: 
+      context: ./Buchhandlungsklient/
+      dockerfile: Dockerfile
+    volumes:
+      - '.:/app'
+      - '/app/node_modules'
+    ports:
+      - "4200:4200"
+    container_name: buchhandlung-frontend
+    restart: always
+    links:
+      - backend
+      - auth
+      
+  backend:
+    build: ./Buchhandlungsserver/Buchhandlung.Backend/Buchhandlung.Backend
+    ports:
+      - "5000:5000"
+    container_name: buchhandlung-backend
+    restart: always
+    links:
+      - auth
+      - db
+      
+  auth:
+    build: ./Buchhandlungsserver/Buchhandlung.Backend/Buchhandlung.Auth
+    ports:
+      - "5001:5001"
+    container_name: buchhandlung-auth
+    restart: always
+    links:
+      - db
+      
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    ports:
+      - "1433:1433"
+    env_file:
+      - ./config/.env
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Express
+    container_name: buchhandlung-database
+    restart: always
